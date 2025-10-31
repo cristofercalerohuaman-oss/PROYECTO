@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .fletes-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f9fafb;
+  }
+  .fletes-list label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  .fletes-list input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8 offset-lg-2">
+
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h3>Planificar Nueva Ruta</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.titulo.label }}</label>
+              {{ form.titulo }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.vehiculo.label }}</label>
+                {{ form.vehiculo }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.chofer.label }}</label>
+                {{ form.chofer }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.fecha.label }}</label>
+                {{ form.fecha }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.status.label }}</label>
+                {{ form.status }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.origen.label }}</label>
+                {{ form.origen }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.destino.label }}</label>
+                {{ form.destino }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.distancia_km.label }}</label>
+              {{ form.distancia_km }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.descripcion.label }}</label>
+              {{ form.descripcion }}
+            </div>
+
+            <hr>
+            <div class="mb-3">
+              <label class="form-label"><strong>{{ form.fletes_a_asignar.label }}</strong></label>
+              <div class="fletes-list">
+                {{ form.fletes_a_asignar }}
+                {% if not form.fletes_a_asignar.queryset.exists %}
+                  <p class="text-muted">No hay fletes pendientes para asignar.</p>
+                {% endif %}
+              </div>
+              {% if form.fletes_a_asignar.errors %}
+                <div class="invalid-feedback d-block">{{ form.fletes_a_asignar.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <hr>
+            <button type="submit" class="btn btn-primary">
+              Guardar Ruta y Asignar Fletes
+            </button>
+            <a href="{% url 'vehiculos:lista_rutas' %}" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

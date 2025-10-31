@@ -1,0 +1,57 @@
+2025-09-30 01:06:14,377 INFO: Iniciando comprobación de mantenimiento.
+2025-09-30 01:06:14,571 ERROR: Error al ejecutar consulta en DB.
+Traceback (most recent call last):
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: no existe la relación «vehiculos»
+LINE 5: FROM vehiculos v
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CRISTOFER\Documents\flota_project\alertas_mantenimiento.py", line 142, in main
+    rows = fetch_vehiculos_criticos(engine, UMBRAL_DIAS)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CRISTOFER\Documents\flota_project\alertas_mantenimiento.py", line 67, in fetch_vehiculos_criticos
+    res = conn.execute(text(QUERY), {"umbral": f"{umbral} days"})
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\CRISTOFER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) no existe la relación «vehiculos»
+LINE 5: FROM vehiculos v
+             ^
+
+[SQL: 
+SELECT v.id, v.placa, v.marca, v.modelo,
+       MAX(m.fecha) AS ultima_fecha,
+       CASE WHEN MAX(m.fecha) IS NULL THEN NULL ELSE (CURRENT_DATE - MAX(m.fecha)) END AS dias_desde
+FROM vehiculos v
+LEFT JOIN mantenimiento m ON m.vehiculo_id = v.id
+GROUP BY v.id, v.placa, v.marca, v.modelo
+HAVING (MAX(m.fecha) IS NULL) OR ((CURRENT_DATE - MAX(m.fecha)) > %(umbral)s)
+ORDER BY dias_desde DESC NULLS LAST;
+]
+[parameters: {'umbral': '180 days'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)

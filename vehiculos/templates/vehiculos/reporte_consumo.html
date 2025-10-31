@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Reporte de Consumo - Flota{% endblock %}
+
+{% block content %}
+
+<style>
+  .rendimiento-chip {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 0.95em;
+    text-align: center;
+    min-width: 100px;
+  }
+  .rendimiento-bueno { background-color: #dcfce7; color: #166534; }
+  .rendimiento-regular { background-color: #fef9c3; color: #854d0e; }
+  .rendimiento-malo { background-color: #fef2f2; color: #b91c1c; }
+  .rendimiento-na { background-color: #f3f4f6; color: #6b7280; }
+  .table th.th-number,
+  .table td.td-number {
+    text-align: right;
+  }
+</style>
+
+<div class="container">
+
+  <div class="page-header">
+    <h2>Reporte de Consumo de Combustible</h2>
+  </div>
+
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="get" action="{% url 'vehiculos:reporte_consumo' %}">
+      <p style="margin-top: 0; margin-bottom: 1rem; font-weight: bold;">Selecciona el periodo y/o vehículo:</p>
+      <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div>
+          <label for="vehiculo" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Vehículo:</label>
+          <select id="vehiculo" name="vehiculo" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee; min-width: 180px;">
+            <option value="">-- Todos --</option>
+            {% for v in vehiculos_para_filtro %}
+              <option value="{{ v.id }}" {% if vehiculo_id_seleccionado == v.id|stringformat:"s" %}selected{% endif %}>
+                {{ v.placa }} - {{ v.marca }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="fecha_inicio" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Desde:</label>
+          <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio_filtro|default:'' }}" required style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee;">
+        </div>
+        <div>
+          <label for="fecha_fin" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Hasta:</label>
+          <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin_filtro|default:'' }}" required style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee;">
+        </div>
+        <div style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary" style="margin-top: 0; padding: 0.5rem 0.8rem;">Generar Reporte</button>
+            <a href="{% url 'vehiculos:reporte_consumo' %}" class="btn btn-outline" style="margin-top: 0; padding: 0.5rem 0.8rem;">Mes Actual</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% if reporte_data %}
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Vehículo (Placa)</th>
+              <th>Marca</th>
+              <th class="th-number">Cargas</th>
+              <th class="th-number">KM Recorridos</th>
+              <th class="th-number">Litros Totales</th>
+              
+              {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+                <th class="th-number">Costo Total</th>
+              {% endif %}
+              <th class="th-number">Rendimiento Prom. (KM/Lt)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in reporte_data %}
+            <tr>
+              <td>{{ item.vehiculo.placa }}</td>
+              <td>{{ item.vehiculo.marca }} {{ item.vehiculo.modelo }}</td>
+              <td class="td-number">{{ item.num_cargas }}</td>
+              <td class="td-number">{{ item.distancia_recorrida|intcomma }} km</td>
+              <td class="td-number">{{ item.total_litros|floatformat:2 }} lt</td>
+              
+              {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+                <td class="td-number">S/ {{ item.total_costo|floatformat:2|intcomma }}</td>
+              {% endif %}
+              <td class="td-number">
+                {% if item.rendimiento_promedio > 9 %}
+                  <span class="rendimiento-chip rendimiento-bueno">
+                    {{ item.rendimiento_promedio|floatformat:2 }} km/lt
+                  </span>
+                {% elif item.rendimiento_promedio > 5 %}
+                  <span class="rendimiento-chip rendimiento-regular">
+                    {{ item.rendimiento_promedio|floatformat:2 }} km/lt
+                  </span>
+                {% elif item.rendimiento_promedio > 0 %}
+                  <span class="rendimiento-chip rendimiento-malo">
+                    {{ item.rendimiento_promedio|floatformat:2 }} km/lt
+                  </span>
+                {% else %}
+                  <span class="rendimiento-chip rendimiento-na">
+                    N/A
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% elif request.GET.fecha_inicio %}
+    <div class="empty card">
+      <p>No se encontraron cargas de combustible para los filtros seleccionados.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

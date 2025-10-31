@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>Importar desde Excel</h2>
+    <p>Sube un archivo .xlsx con columnas como <strong>TRACTO, PLACA, MARCA TRACTO, CONFIGURACION, FECHA-DISPONIBLE</strong>.</p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label>Archivo Excel</label><br>
+      <input type="file" name="excel_file" accept=".xls,.xlsx" required><br><br>
+      <button class="btn btn-primary" type="submit">Importar</button>
+      <a class="btn btn-secondary" href="{% url 'vehiculos:listar_vehiculos' %}">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

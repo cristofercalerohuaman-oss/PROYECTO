@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Vehículo {{ vehiculo.placa }} - Flota{% endblock %}
+
+{% block content %}
+
+<style>
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .profile-card {
+    background: var(--card, #fff);
+    padding: 1.5rem;
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 30, 0.08));
+  }
+  .profile-card h5 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+  }
+  .profile-card p {
+    margin: 0 0 0.5rem 0;
+  }
+  .profile-card strong {
+    color: var(--text-color-light, #6b7280);
+    min-width: 120px;
+    display: inline-block;
+  }
+  
+  /* --- Estilos para las Pestañas --- */
+  .tabs-nav {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+  }
+  .tab-link {
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color-light, #6b7280);
+    margin-bottom: -2px; /* Alinea con el borde inferior */
+  }
+  .tab-link:hover {
+    background-color: var(--hover-bg, #f3f4f6);
+    color: #000;
+  }
+  .tab-link.active {
+    /* Pestaña activa */
+    border-color: var(--primary-color, #0b74ff);
+    color: var(--primary-color, #0b74ff);
+    font-weight: 600;
+  }
+
+  /* --- Contenido de las Pestañas --- */
+  .tab-content {
+    display: none; /* Oculto por defecto */
+  }
+  .tab-content.active {
+    display: block; /* Visible */
+  }
+  .table th.th-number, .table td.td-number {
+    text-align: right;
+  }
+</style>
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Vehículo: {{ vehiculo.placa }}</h2>
+    <a href="{% url 'vehiculos:listar_vehiculos' %}" class="btn btn-secondary">← Volver al listado</a>
+  </div>
+
+  <div class="profile-grid">
+    <div class="profile-card">
+      <h5>Ficha Técnica</h5>
+      <p><strong>Marca:</strong> {{ vehiculo.marca }}</p>
+      <p><strong>Modelo:</strong> {{ vehiculo.modelo }}</p>
+      <p><strong>Año:</strong> {{ vehiculo.anio|default:"-" }}</p>
+      <p><strong>Tipo Comb.:</strong> {{ vehiculo.combustible_tipo|default:"-" }}</p>
+    </div>
+    
+    <div class="profile-card">
+      <h5>Estado Actual</h5>
+      <p><strong>KM Actual:</strong> {{ vehiculo.kilometraje|intcomma }} km</p>
+      <p><strong>Próx. Mant.:</strong> {{ vehiculo.km_proximo_mantenimiento|intcomma }} km</p>
+      <p><strong>Estado:</strong>
+        {% if vehiculo.mantenimiento_requerido %}
+          <span style="color: #9f1239; font-weight: bold;">Mantenimiento Requerido</span>
+        {% elif vehiculo.activo %}
+          Activo
+        {% else %}
+          Inactivo
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      
+      <div class="tabs-nav">
+        <button class="tab-link active" data-tab="mantenimiento">Mantenimientos</button>
+        <button class="tab-link" data-tab="combustible">Combustible</button>
+        <button class="tab-link" data-tab="rutas">Rutas</button>
+      </div>
+
+      <div class="tabs-content-container">
+        
+        <div id="tab-mantenimiento" class="tab-content active">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Título</th>
+                <th class="th-number">Odómetro</th>
+                <th class="th-number">Costo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mant in historial_mantenimientos %}
+              <tr>
+                <td>{{ mant.fecha|date:"d M Y" }}</td>
+                <td>{{ mant.get_tipo_display }}</td>
+                <td>{{ mant.titulo }}</td>
+                <td class="td-number">{{ mant.odometro|intcomma }} km</td>
+                <td class="td-number">S/ {{ mant.costo|floatformat:2|intcomma }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center">Este vehículo no tiene historial de mantenimientos.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="tab-combustible" class="tab-content">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th class="th-number">Litros</th>
+                <th class="th-number">Costo</th>
+                <th class="th-number">Odómetro</th>
+                <th>Estación</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for carga in historial_combustible %}
+              <tr>
+                <td>{{ carga.fecha|date:"d M Y, P" }}</td>
+                <td class="td-number">{{ carga.litros|floatformat:2 }} lt</td>
+                <td class="td-number">S/ {{ carga.costo|floatformat:2|intcomma }}</td>
+                <td class="td-number">{{ carga.odometro|intcomma }} km</td>
+                <td>{{ carga.estacion_nombre }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center">Este vehículo no tiene historial de combustible.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="tab-rutas" class="tab-content">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Título</th>
+                <th>Chofer</th>
+                <th>Origen</th>
+                <th>Destino</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ruta in historial_rutas %}
+              <tr>
+                <td>{{ ruta.fecha|date:"d M Y" }}</td>
+                <td>{{ ruta.titulo }}</td>
+                <td>{{ ruta.chofer.user.username|default:"N/A" }}</td>
+                <td>{{ ruta.origen }}</td>
+                <td>{{ ruta.destino }}</td>
+                <td>{{ ruta.get_status_display }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center">Este vehículo no tiene historial de rutas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+
+        // 1. Quitar 'active' de todos los botones y contenidos
+        tabLinks.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // 2. Añadir 'active' al botón clickeado
+        this.classList.add('active');
+        
+        // 3. Añadir 'active' al contenido correspondiente
+        document.getElementById('tab-' + tabId).classList.add('active');
+      });
+    });
+  });
+</script>
+{% endblock %}

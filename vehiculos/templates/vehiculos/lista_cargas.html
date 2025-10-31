@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+  th a.sortable-header {
+    text-decoration: none;
+    color: #343a40;
+    display: block;
+  }
+  th a.sortable-header:hover {
+    color: #000;
+  }
+  th a.sortable-header:visited {
+    color: #343a40; /* Evita el morado */
+  }
+
+  .sort-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    font-weight: 600;
+    color: var(--primary, #0b74ff);
+  }
+
+  /* ============================================== */
+  /* ¡NUEVO! Estilo para el botón "Ver Detalle" */
+  .table-action-link {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #d1d5db; /* Borde gris */
+    background-color: #ffffff;
+    color: #374151; /* Texto gris */
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+  }
+  .table-action-link:hover {
+    background-color: #f3f4f6;
+    color: #000;
+  }
+  .table-action-link:visited {
+    color: #374151; /* Evita el morado */
+  }
+
+  /* ¡NUEVO! Alinear números a la derecha */
+  .table th.th-number,
+  .table td.td-number {
+    text-align: right;
+  }
+  /* Alinear cabecera de número a la derecha (para el sort) */
+  .table th.th-number a.sortable-header {
+    text-align: right;
+  }
+  /* ============================================== */
+
+</style>
+<div class="container">
+
+  <div class="page-header">
+    <h2>Cargas de Combustible</h2>
+    <a href="{% url 'vehiculos:nueva_carga' %}" class="btn btn-primary">Registrar Abastecimiento</a>
+  </div>
+
+  <div class="summary-stats">
+    Total litros: <strong>{{ total_litros|floatformat:2|default:"0" }}</strong>
+    —
+    Total gasto: <strong>S/ {{ total_gasto|floatformat:2|intcomma|default:"0.00" }}</strong>
+  </div>
+
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="get" action="{% url 'vehiculos:lista_cargas' %}">
+      <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div>
+          <label for="vehiculo" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Vehículo:</label>
+          <select id="vehiculo" name="vehiculo" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee; min-width: 180px;">
+            <option value="">-- Todos --</option>
+            {% for v in vehiculos_para_filtro %}
+              <option value="{{ v.id }}" {% if vehiculo_id_seleccionado == v.id|stringformat:"s" %}selected{% endif %}>
+                {{ v.placa }} - {{ v.marca }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="fecha_inicio" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Desde:</label>
+          <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio_filtro|default:'' }}" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee;">
+        </div>
+        <div>
+          <label for="fecha_fin" style="display: block; margin-bottom: .3rem; font-weight: 600; font-size: 0.9em; color: var(--muted);">Hasta:</label>
+          <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin_filtro|default:'' }}" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #e6e9ee;">
+        </div>
+        <div style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-secondary" style="margin-top: 0; padding: 0.5rem 0.8rem;">Filtrar</button>
+            <a href="{% url 'vehiculos:lista_cargas' %}" class="btn btn-outline" style="margin-top: 0; padding: 0.5rem 0.8rem;">Limpiar</a>
+        </div>
+      </div>
+      <input type="hidden" name="sort" value="{{ current_sort }}">
+      <input type="hidden" name="dir" value="{{ current_dir }}">
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            {% with sort_param='fecha' %}
+            <th>
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                Fecha {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            {% with sort_param='vehiculo__placa' %}
+            <th>
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                Vehículo {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            {% with sort_param='chofer__user__username' %}
+            <th>
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                Chofer {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            
+            {% with sort_param='litros' %}
+            <th class="th-number">
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                Litros {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            
+            {% with sort_param='costo' %}
+            <th class="th-number">
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                Costo {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            
+            {% with sort_param='odometro' %}
+            <th class="th-number">
+              <a class="sortable-header" href="?sort={{ sort_param }}&dir={% if current_sort_base == sort_param and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if vehiculo_id_seleccionado %}&vehiculo={{ vehiculo_id_seleccionado }}{% endif %}{% if fecha_inicio_filtro %}&fecha_inicio={{ fecha_inicio_filtro }}{% endif %}{% if fecha_fin_filtro %}&fecha_fin={{ fecha_fin_filtro }}{% endif %}">
+                KM {% if current_sort_base == sort_param %}{% if current_dir == 'asc' %}<span class="sort-arrow">↑</span>{% else %}<span class="sort-arrow">↓</span>{% endif %}{% endif %}
+              </a>
+            </th>
+            {% endwith %}
+            <th>Estación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cargas %}
+          <tr>
+            <td>{{ c.fecha|date:"d M Y, P" }}</td>
+            <td>{{ c.vehiculo__placa }}</td>
+            <td>{{ c.chofer__user__username|default:"-" }}</td>
+            
+            <td class="td-number">{{ c.litros|default_if_none:"0.00"|floatformat:2 }}</td>
+            <td class="td-number">S/ {{ c.costo|default_if_none:"0.00"|floatformat:2|intcomma }}</td>
+            <td class="td-number">{{ c.odometro }}</td>
+            
+            <td>{{ c.estacion_nombre }}</td>
+            <td>
+              <a href="{% url 'vehiculos:detalle_carga' c.id %}" class="table-action-link">Ver Detalle</a>
+            </td>
+          </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 1rem;">No hay cargas que coincidan con los filtros.</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if cargas.has_other_pages %}
+  <div class="pagination" style="margin-top: 1.5rem; text-align: center;">
+      <span class="step-links">
+          {% with base_params="" %}
+            {% if current_sort %}{% with current_sort_param="&sort="|add:current_sort %}{% with base_params=base_params|add:current_sort_param %}{% endwith %}{% endwith %}{% endif %}
+            {% if current_dir %}{% with current_dir_param="&dir="|add:current_dir %}{% with base_params=base_params|add:current_dir_param %}{% endwith %}{% endwith %}{% endif %}
+            {% if vehiculo_id_seleccionado %}{% with vehiculo_param="&vehiculo="|add:vehiculo_id_seleccionado %}{% with base_params=base_params|add:vehiculo_param %}{% endwith %}{% endwith %}{% endif %}
+            {% if fecha_inicio_filtro %}{% with fecha_inicio_param="&fecha_inicio="|add:fecha_inicio_filtro %}{% with base_params=base_params|add:fecha_inicio_param %}{% endwith %}{% endwith %}{% endif %}
+            {% if fecha_fin_filtro %}{% with fecha_fin_param="&fecha_fin="|add:fecha_fin_filtro %}{% with base_params=base_params|add:fecha_fin_param %}{% endwith %}{% endwith %}{% endif %}
+
+            {% if cargas.has_previous %}
+                <a href="?page=1{{ base_params }}">&laquo; primera</a>
+                <a href="?page={{ cargas.previous_page_number }}{{ base_params }}">anterior</a>
+            {% endif %}
+
+            <span class="current">
+                Página {{ cargas.number }} de {{ cargas.paginator.num_pages }}.
+            </span>
+
+            {% if cargas.has_next %}
+                <a href="?page={{ cargas.next_page_number }}{{ base_params }}">siguiente</a>
+                <a href="?page={{ cargas.paginator.num_pages }}{{ base_params }}">última &raquo;</a>
+            {% endif %}
+          {% endwith %}
+      </span>
+  </div>
+{% endif %}
+</div>
+{% endblock %}

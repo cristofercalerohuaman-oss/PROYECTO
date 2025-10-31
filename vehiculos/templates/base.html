@@ -1,0 +1,156 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Flota{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  
+  <style>
+    :root {
+      --primary-color: #0b74ff;
+      --primary-color-text: #ffffff;
+      --hover-bg: #f3f4f6;
+      --text-color: #374151;
+      --text-color-light: #6b7280;
+    }
+    .topbar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .topbar nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .topbar nav .nav-link {
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      color: var(--text-color);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .topbar nav .nav-link:hover {
+      background-color: var(--hover-bg);
+      color: #000;
+    }
+    .topbar nav .nav-link.active {
+      background-color: var(--primary-color);
+      color: var(--primary-color-text);
+      font-weight: 600;
+    }
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    .user-block .user {
+      font-weight: 600;
+      color: var(--text-color);
+      padding: 8px 12px;
+    }
+    .logout-button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--text-color);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      text-decoration: none;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .logout-button:hover {
+      background-color: var(--hover-bg);
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      
+      <nav>
+        <a class="brand" href="{% url 'vehiculos:dashboard' %}">Flota</a>
+        {% if user.is_authenticated %}
+          
+          {% with view_name=request.resolver_match.url_name %}
+            
+            <a class="nav-link {% if view_name == 'listar_vehiculos' or view_name == 'agregar_vehiculo' or view_name == 'detalle_vehiculo' or view_name == 'editar_vehiculo' %}active{% endif %}" 
+               href="{% url 'vehiculos:listar_vehiculos' %}">Vehículos</a>
+               
+            <a class="nav-link {% if view_name == 'lista_cargas' or view_name == 'nueva_carga' or view_name == 'detalle_carga' %}active{% endif %}" 
+               href="{% url 'vehiculos:lista_cargas' %}">Combustible</a>
+            
+            {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+              <a class="nav-link {% if view_name == 'lista_mantenimientos' or view_name == 'registrar_mantenimiento' or view_name == 'detalle_mantenimiento' %}active{% endif %}" 
+                 href="{% url 'vehiculos:lista_mantenimientos' %}">Mantenimientos</a>
+            {% endif %}
+               
+            <a class="nav-link {% if view_name == 'lista_rutas' or view_name == 'planificar_ruta' or view_name == 'detalle_ruta' %}active{% endif %}" 
+               href="{% url 'vehiculos:lista_rutas' %}">Rutas</a>
+            
+            {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+              <a class="nav-link {% if view_name == 'lista_fletes' or view_name == 'crear_flete' %}active{% endif %}" 
+                 href="{% url 'vehiculos:lista_fletes' %}">Fletes</a>
+            {% endif %}
+            {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+              <a class="nav-link {% if view_name == 'reporte_consumo' %}active{% endif %}" 
+                 href="{% url 'vehiculos:reporte_consumo' %}">Reportes</a>
+            {% endif %}
+
+          </nav>
+
+          <nav>
+            <div class="user-block">
+              <span class="user">Hola, {{ user.username }}</span>
+              
+              <a class="nav-link {% if view_name == 'mi_perfil' %}active{% endif %}" 
+                 href="{% url 'vehiculos:mi_perfil' %}">Mi Perfil</a>
+                 
+              <form method="post" action="{% url 'logout' %}" style="display:inline;margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">
+                  Cerrar sesión
+                </button>
+              </form>
+            </div>
+          {% endwith %} 
+          
+        {% else %}
+          <a class="nav-link" href="{% url 'vehiculos:signup' %}">Registro</a>
+          <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
+        {% endif %}
+      </nav>
+
+    </div>
+  </header>
+
+  <main class="container">
+    {% if messages %}
+      <ul class="messages">
+        {% for m in messages %}
+          <li class="msg {{ m.tags }}">{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      {% load tz %}
+      {% timezone "America/Lima" %}
+         &copy; {% now "Y" %} · Flota
+      {% endtimezone %}
+    </div>
+  </footer>
+</body>
+</html>

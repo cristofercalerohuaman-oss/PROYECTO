@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+  .detail-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(12, 20, 30, 0.08);
+    overflow: hidden; /* Para que el header se vea bien */
+  }
+  .detail-header {
+    background-color: #f9fafb; /* Un fondo gris muy claro */
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .detail-header h2 {
+    margin: 0;
+    color: #111827;
+  }
+  .detail-header p {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+  .detail-body {
+    padding: 1.5rem;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    gap: 1.5rem;
+  }
+  .detail-item {
+    margin-bottom: 1rem;
+  }
+  .detail-item label {
+    display: block;
+    font-weight: 600;
+    color: #4b5563;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+  }
+  .detail-item span {
+    font-size: 1.1em;
+    color: #111827;
+  }
+  .detail-notes {
+    margin-top: 1.5rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-10 offset-lg-1">
+    
+      <div class="detail-card">
+        <div class="detail-header">
+          <h2>{{ ruta.titulo }}</h2>
+          <p>Detalles de la ruta completada el {{ ruta.fecha|date:"d M Y" }}</p>
+        </div>
+        
+        <div class="detail-body">
+          <div class="detail-grid">
+            
+            <div>
+              <div class="detail-item">
+                <label>Estado</label>
+                <span>{{ ruta.get_status_display }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Origen</label>
+                <span>{{ ruta.origen|default:"No especificado" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Destino</label>
+                <span>{{ ruta.destino|default:"No especificado" }}</span>
+              </div>
+            </div>
+            
+            <div>
+              <div class="detail-item">
+                <label>Vehículo</label>
+                <span>{{ ruta.vehiculo.placa|default:"N/A" }} ({{ ruta.vehiculo.marca }})</span>
+              </div>
+              <div class="detail-item">
+                <label>Conductor</label>
+                <span>{{ ruta.chofer.user.username|default:"N/A" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Distancia (KM)</label>
+                <span>{{ ruta.distancia_km|default:"0" }} km</span>
+              </div>
+            </div>
+            
+          </div>
+
+          <div class="detail-notes">
+            <label>Descripción / Notas</label>
+            <p>{{ ruta.descripcion|default:"No se añadieron notas."|linebreaksbr }}</p>
+          </div>
+
+          <hr>
+          <a href="{% url 'vehiculos:lista_rutas' %}" class="btn btn-secondary">← Regresar a la Lista</a>
+
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}

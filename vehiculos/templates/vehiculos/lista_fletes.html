@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .actions-menu { position: relative; display: inline-block; }
+  .actions-menu-button {
+    background: none; border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 2px 10px; font-size: 1.2rem; font-weight: bold;
+    line-height: 1.2; color: #6b7280; cursor: pointer; transition: background-color 0.2s ease;
+  }
+  .actions-menu-button:hover { background-color: #f3f4f6; }
+  .actions-dropdown {
+    display: none; position: absolute; right: 0; top: 100%;
+    background-color: white; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    min-width: 140px; z-index: 10; overflow: hidden;
+  }
+  .actions-dropdown.active { display: block; }
+  .actions-dropdown a {
+    display: block; padding: 10px 16px; text-decoration: none;
+    color: #374151; font-size: 0.95em;
+  }
+  .actions-dropdown a:hover { background-color: #f3f4f6; }
+  .actions-dropdown a.danger { color: #dc2626; }
+  .actions-dropdown a.danger:hover { background-color: #fef2f2; }
+
+  .status-chip {
+    display: inline-block; padding: 4px 12px; border-radius: 99px;
+    font-weight: 600; font-size: 0.9em;
+  }
+  .status-pendiente { background-color: #f3f4f6; color: #4b5563; }
+  .status-asignado { background-color: #e0f2fe; color: #0c54a0; }
+  .status-en_transito { background-color: #fef9c3; color: #854d0e; }
+  .status-entregado { background-color: #dcfce7; color: #166534; }
+  .status-cancelado { background-color: #fef2f2; color: #b91c1c; }
+  
+  .table th.th-number,
+  .table td.td-number {
+    text-align: right;
+  }
+</style>
+
+<div class="container mt-4">
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Gestión de Fletes (Cargas)</h3>
+    <a href="{% url 'vehiculos:crear_flete' %}" class="btn btn-primary">
+      Registrar Nuevo Flete
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Título</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Ruta Asignada</th>
+            <th scope="col" class="th-number">Peso (Ton)</th>
+            <th scope="col">Estado</th>
+            <th scope="col" style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for flete in fletes %}
+          <tr>
+            <td>{{ flete.titulo }}</td>
+            
+            <td>
+              <a href="{% url 'vehiculos:editar_flete' flete.pk %}" style="text-decoration: none; font-weight: 600; color: #0b74ff;">
+                {{ flete.cliente|default:"N/A" }}
+              </a>
+            </td>
+            <td>{{ flete.ruta.titulo|default:"--" }}</td>
+            <td class="td-number">{{ flete.peso_toneladas|default:"--" }}</td>
+            <td>
+              <span class="status-chip status-{{ flete.estado }}">
+                {{ flete.get_estado_display }}
+              </span>
+            </td>
+            
+            <td style="text-align: center;">
+              <div class="actions-menu">
+                <button class="actions-menu-button">⋮</button>
+                <div class="actions-dropdown">
+                  <a href="{% url 'vehiculos:detalle_flete' flete.pk %}">Ver Detalle</a>
+                  <a href="{% url 'vehiculos:editar_flete' flete.pk %}">Editar</a>
+                  <a href="{% url 'vehiculos:eliminar_flete' flete.pk %}" 
+                     class="danger"
+                     onclick="return confirm('¿Estás seguro de eliminar el flete {{ flete.titulo }}? Esta acción no se puede deshacer.');">
+                     Cancelar Flete
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center">
+              Aún no hay fletes (cargas) registrados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const menuButton = e.target.closest('.actions-menu-button');
+    if (menuButton) {
+      const dropdown = menuButton.nextElementSibling;
+      document.querySelectorAll('.actions-dropdown.active').forEach(openDropdown => {
+        if (openDropdown !== dropdown) {
+          openDropdown.classList.remove('active');
+        }
+      });
+      dropdown.classList.toggle('active');
+    } else {
+      document.querySelectorAll('.actions-dropdown.active').forEach(openDropdown => {
+        openDropdown.classList.remove('active');
+      });
+    }
+  });
+</script>
+{% endblock %}

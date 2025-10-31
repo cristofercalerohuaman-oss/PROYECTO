@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8 offset-lg-2">
+
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h3>Editando Flete: {{ flete.titulo }}</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.titulo.label }}</label>
+              {{ form.titulo }}
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">{{ form.cliente.label }}</label>
+              {{ form.cliente }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.peso_toneladas.label }}</label>
+                {{ form.peso_toneladas }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.estado.label }}</label>
+                {{ form.estado }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.descripcion.label }}</label>
+              {{ form.descripcion }}
+            </div>
+
+            <hr>
+            <button type="submit" class="btn btn-primary">
+              Guardar Cambios
+            </button>
+            <a href="{% url 'vehiculos:lista_fletes' %}" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

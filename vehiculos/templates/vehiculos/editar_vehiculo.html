@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar vehículo{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>Editar vehículo: {{ vehiculo.placa }}</h1>
+
+    {% if messages %}
+      <ul class="messages">
+        {% for m in messages %}
+          <li class="msg {{ m.tags }}">{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label for="{{ form.placa.id_for_label }}">Placa</label><br>
+        {{ form.placa }}
+        {{ form.placa.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.marca.id_for_label }}">Marca</label><br>
+        {{ form.marca }}
+        {{ form.marca.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.modelo.id_for_label }}">Modelo</label><br>
+        {{ form.modelo }}
+        {{ form.modelo.errors }}
+      </div>
+
+      <div>
+        <label for="{{ form.anio.id_for_label }}">Año</label><br>
+        {{ form.anio }}
+        {{ form.anio.errors }}
+      </div>
+
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="btn btn-secondary" href="{% url 'vehiculos:listar_vehiculos' %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

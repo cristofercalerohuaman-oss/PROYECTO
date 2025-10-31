@@ -1,0 +1,104 @@
+{% extends 'base.html' %} 
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8 offset-lg-2">
+
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h3>Registrar Mantenimiento</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.vehiculo.label }}</label>
+              {{ form.vehiculo }}
+              {% if form.vehiculo.errors %}<div class="invalid-feedback d-block">{{ form.vehiculo.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.fecha.label }}</label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}<div class="invalid-feedback d-block">{{ form.fecha.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.odometro.label }} (KM)</label>
+                {{ form.odometro }}
+                {% if form.odometro.errors %}<div class="invalid-feedback d-block">{{ form.odometro.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.tipo.label }}</label>
+                {{ form.tipo }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ form.costo.label }} (S/)</label>
+                {{ form.costo }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.titulo.label }}</label>
+              {{ form.titulo }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.notas.label }}</label>
+              {{ form.notas }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.realizado_por.label }}</label>
+              {{ form.realizado_por }}
+            </div>
+            
+            <div class="form-check mb-3">
+              {{ form.resetea_odometro }}
+              <label class="form-check-label" for="{{ form.resetea_odometro.id_for_label }}">
+                Este mantenimiento reinicia el contador de KM del vehículo
+              </label>
+            </div>
+
+            <h4 class="mt-4">Repuestos Usados</h4>
+            <div class="card bg-light p-3">
+              
+              {{ formset.management_form }}
+
+              <div class="row">
+                <div class="col-7"><label>Ítem del Inventario</label></div>
+                <div class="col-5"><label>Cantidad Usada</label></div>
+              </div>
+
+              {% for item_form in formset %}
+                <div class="row mb-2 align-items-center">
+                  <div class="col-7">
+                    {{ item_form.item_inventario }}
+                    {% if item_form.item_inventario.errors %}<div class="invalid-feedback d-block">{{ item_form.item_inventario.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-5">
+                    {{ item_form.cantidad_usada }}
+                    {% if item_form.cantidad_usada.errors %}<div class="invalid-feedback d-block">{{ item_form.cantidad_usada.errors.0 }}</div>{% endif %}
+                  </div>
+                  {{ item_form.id }} 
+                </div>
+              {% endfor %}
+            </div>
+            <hr>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Guardar Mantenimiento
+            </button>
+            <a href="{% url 'vehiculos:lista_mantenimientos' %}" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

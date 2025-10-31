@@ -1,0 +1,72 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crear cuenta</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    .signup-card { max-width:540px; margin:2.5rem auto; }
+    .form-row { margin-bottom:0.8rem; }
+    label { display:block; margin-bottom:0.3rem; color:#374151; font-weight:600; }
+    input { width:100%; padding:0.65rem; border-radius:8px; border:1px solid #e6e9ee; }
+    .btn { display:inline-block; padding:0.6rem 1rem; border-radius:8px; background:#0b74ff; color:#fff; border:none; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card signup-card">
+      <h2>Crear cuenta</h2>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for m in messages %}
+            <li class="msg {{ m.tags }}">{{ m }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-row">
+          <label for="id_username">Usuario</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="msg error">{{ form.username.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="id_email">Correo electrónico</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="msg error">{{ form.email.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="id_password1">Contraseña</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <div class="msg error">{{ form.password1.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="id_password2">Confirmar contraseña</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <div class="msg error">{{ form.password2.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div style="margin-top:1rem;">
+          <button class="btn" type="submit">Crear cuenta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

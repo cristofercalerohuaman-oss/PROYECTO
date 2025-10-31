@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load humanize %} {# Asegúrate de tener humanize cargado #}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<div class="container">
+  <h2>Detalle carga</h2>
+  <div class="card"> {# Envuelve los detalles en una tarjeta #}
+    <p><strong>Vehículo:</strong> {{ carga.vehiculo }}</p>
+    <p><strong>Fecha:</strong> {{ carga.fecha|date:"d M Y, P" }}</p> {# Formato de fecha añadido #}
+    <p><strong>Litros:</strong> {{ carga.litros|default_if_none:"0.00"|floatformat:2 }}</p>
+    <p><strong>Costo:</strong> S/ {{ carga.costo|default_if_none:"0.00"|floatformat:2|intcomma }}</p>
+    {% if carga.odometro %}
+    <p><strong>Odómetro:</strong> {{ carga.odometro|intcomma }} km</p>
+    {% endif %}
+
+    {% if carga.odometro_anterior %}
+      <p><strong>Odómetro Anterior:</strong> {{ carga.odometro_anterior|intcomma }} km</p>
+    {% endif %}
+    {% if carga.rendimiento_km_lt %}
+      <p><strong>Rendimiento Tramo:</strong> <strong style="color: #166534;">{{ carga.rendimiento_km_lt|floatformat:2 }} km/lt</strong></p> {# Resaltado #}
+    {% endif %}
+    <p><strong>Estación:</strong> {{ carga.estacion_nombre|default:"N/A" }}</p>
+
+    {% if carga.comprobante %}
+      <p><strong>Comprobante:</strong><br><img src="{{ carga.comprobante.url }}" style="max-width:300px; border-radius: 8px; margin-top: 5px;"></p> {# Estilo img #}
+    {% endif %}
+
+    {% if carga.notas %}
+        <p><strong>Notas:</strong><br>{{ carga.notas|linebreaksbr }}</p> {# Muestra notas si existen #}
+    {% endif %}
+
+    {% if carga.lat and carga.lng %}
+      <h4 style="margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1rem;">Ubicación</h4>
+      <div id="map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+    {% else %}
+      <p style="margin-top: 1.5rem; color: var(--muted);">No se registró la ubicación para esta carga.</p>
+    {% endif %}
+
+  </div> {# Fin de .card #}
+
+  <a href="{% url 'vehiculos:lista_cargas' %}" class="btn btn-secondary" style="margin-top: 1rem;">Volver al listado</a>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  // Solo ejecutamos el script si existen las coordenadas
+  {% if carga.lat and carga.lng %}
+    // Pasamos las variables de Django a JavaScript
+    var lat = {{ carga.lat|safe }};
+    var lng = {{ carga.lng|safe }};
+
+    if (lat && lng) {
+      // 1. Creamos el mapa y lo centramos
+      var map = L.map('map').setView([lat, lng], 16);
+      // 2. Añadimos la capa de OpenStreetMap
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+      // 3. Añadimos un marcador (pin)
+      L.marker([lat, lng]).addTo(map);
+    }
+  {% endif %}
+</script>
+
+{% endblock %}

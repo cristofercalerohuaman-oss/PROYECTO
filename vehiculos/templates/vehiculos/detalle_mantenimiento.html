@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Detalle de Mantenimiento</h2>
+                <a href="{% url 'vehiculos:lista_mantenimientos' %}" class="btn btn-secondary">← Volver a la lista</a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3>{{ mantenimiento.titulo }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Detalles del Servicio</h5>
+                            <p><strong>Vehículo:</strong> {{ mantenimiento.vehiculo.placa }}</p>
+                            <p><strong>Tipo:</strong> {{ mantenimiento.get_tipo_display }}</p>
+                            <p><strong>Fecha:</strong> {{ mantenimiento.fecha|date:"d M Y" }}</p>
+                            <p><strong>Odómetro:</strong> {{ mantenimiento.odometro|intcomma|default:"N/A" }} km</p>
+                            <p><strong>Costo:</strong> S/ {{ mantenimiento.costo|floatformat:2|intcomma }}</p>
+                            <p><strong>Realizado por:</strong> {{ mantenimiento.realizado_por|default:"N/A" }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Repuestos Usados</h5>
+                            {% if items_usados %}
+                                <ul class="list-group">
+                                    {% for item in items_usados %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ item.item_inventario.nombre }}
+                                            <span class="badge bg-primary rounded-pill">{{ item.cantidad_usada }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>No se registraron repuestos para este mantenimiento.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>Notas</h5>
+                    <p>{{ mantenimiento.notas|default:"No hay notas."|linebreaksbr }}</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

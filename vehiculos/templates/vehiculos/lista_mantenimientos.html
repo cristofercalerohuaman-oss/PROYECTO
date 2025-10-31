@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .actions-menu { position: relative; display: inline-block; }
+  .actions-menu-button {
+    background: none; border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 2px 10px; font-size: 1.2rem; font-weight: bold;
+    line-height: 1.2; color: #6b7280; cursor: pointer; transition: background-color 0.2s ease;
+  }
+  .actions-menu-button:hover { background-color: #f3f4f6; }
+  .actions-dropdown {
+    display: none; position: absolute; right: 0; top: 100%;
+    background-color: white; border: 1px solid #e5e7eb;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    min-width: 140px; z-index: 10; overflow: hidden;
+  }
+  .actions-dropdown.active { display: block; }
+  .actions-dropdown a {
+    display: block; padding: 10px 16px; text-decoration: none;
+    color: #374151; font-size: 0.95em;
+  }
+  .actions-dropdown a:hover { background-color: #f3f4f6; }
+  .actions-dropdown a.danger { color: #dc2626; }
+  .actions-dropdown a.danger:hover { background-color: #fef2f2; }
+
+  .table th.th-number,
+  .table td.td-number {
+    text-align: right;
+  }
+</style>
+
+<div class="container mt-4">
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Historial de Mantenimientos</h3>
+    <a href="{% url 'vehiculos:registrar_mantenimiento' %}" class="btn btn-primary">
+      Registrar Mantenimiento
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Vehículo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Título</th>
+            <th scope="col" class="th-number">KM</th>
+            <th scope="col" class="th-number">Costo</th>
+            <th scope="col" style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mant in mantenimientos %}
+          <tr>
+            <td>{{ mant.vehiculo.placa }}</td>
+            <td>{{ mant.fecha|date:"d M Y" }}</td>
+            <td>
+              {% if mant.tipo == 'preventivo' %}
+                <span class="badge bg-success">Preventivo</span>
+              {% elif mant.tipo == 'correctivo' %}
+                <span class="badge bg-danger">Correctivo</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ mant.get_tipo_display }}</span>
+              {% endif %}
+            </td>
+            <td>{{ mant.titulo }}</td>
+            <td class="td-number">{{ mant.odometro|intcomma|default:"N/A" }} km</td>
+            <td class="td-number">S/ {{ mant.costo|floatformat:2|intcomma|default:"0.00" }}</td>
+            
+            <td style="text-align: center;">
+              <div class="actions-menu">
+                <button class="actions-menu-button">⋮</button>
+                <div class="actions-dropdown">
+                  <a href="{% url 'vehiculos:detalle_mantenimiento' mant.pk %}">Ver</a>
+                  
+                  <a href="{% url 'vehiculos:editar_mantenimiento' mant.pk %}">Editar</a>
+                  
+                  <a href="{% url 'vehiculos:eliminar_mantenimiento' mant.pk %}" 
+                     class="danger"
+                     onclick="return confirm('¿Estás seguro de eliminar el mantenimiento {{ mant.titulo }}? Esta acción no se puede deshacer.');">
+                     Eliminar
+                  </a>
+
+                </div>
+              </div>
+            </td>
+            </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center">
+              Aún no hay mantenimientos registrados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const menuButton = e.target.closest('.actions-menu-button');
+    if (menuButton) {
+      const dropdown = menuButton.nextElementSibling;
+      document.querySelectorAll('.actions-dropdown.active').forEach(openDropdown => {
+        if (openDropdown !== dropdown) {
+          openDropdown.classList.remove('active');
+        }
+      });
+      dropdown.classList.toggle('active');
+    } else {
+      document.querySelectorAll('.actions-dropdown.active').forEach(openDropdown => {
+        openDropdown.classList.remove('active');
+      });
+    }
+  });
+</script>
+{% endblock %}

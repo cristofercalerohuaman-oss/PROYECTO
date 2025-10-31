@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+  .status-chip {
+    display: inline-block; padding: 4px 12px; border-radius: 99px;
+    font-weight: 600; font-size: 0.9em;
+  }
+  .status-pendiente { background-color: #f3f4f6; color: #4b5563; }
+  .status-asignado { background-color: #e0f2fe; color: #0c54a0; }
+  .status-en_transito { background-color: #fef9c3; color: #854d0e; }
+  .status-entregado { background-color: #dcfce7; color: #166534; }
+  .status-cancelado { background-color: #fef2f2; color: #b91c1c; }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Detalle de Flete</h2>
+                <a href="{% url 'vehiculos:lista_fletes' %}" class="btn btn-secondary">← Volver a la lista</a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 style="margin: 0;">{{ flete.titulo }}</h3>
+                    <span class="status-chip status-{{ flete.estado }}">
+                        {{ flete.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Detalles del Flete</h5>
+                            <p><strong>Cliente:</strong> {{ flete.cliente|default:"No especificado" }}</p>
+                            <p><strong>Peso:</strong> {{ flete.peso_toneladas|default:"--" }} Toneladas</p>
+                            <p><strong>Descripción:</strong></p>
+                            <p>{{ flete.descripcion|default:"N/A"|linebreaksbr }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Ruta Asignada</h5>
+                            {% if flete.ruta %}
+                                <p><strong>Título de Ruta:</strong> 
+                                    <a href="{% url 'vehiculos:detalle_ruta' flete.ruta.pk %}">{{ flete.ruta.titulo }}</a>
+                                </p>
+                                <p><strong>Vehículo:</strong> 
+                                    <a href="{% url 'vehiculos:detalle_vehiculo' flete.ruta.vehiculo.pk %}">{{ flete.ruta.vehiculo.placa }}</a>
+                                </p>
+                                <p><strong>Chofer:</strong> {{ flete.ruta.chofer.user.username|default:"N/A" }}</p>
+                                <p><strong>Destino:</strong> {{ flete.ruta.destino|default:"N/A" }}</p>
+                            {% else %}
+                                <p>Este flete aún no ha sido asignado a una ruta.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .btn-ruta {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 99px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: transform 0.1s ease;
+  }
+  .btn-ruta:hover {
+    transform: scale(1.03);
+  }
+  .btn-ruta-start { background: #e0f2fe; color: #0c54a0; }
+  .btn-ruta-complete { background: #dcfce7; color: #166534; }
+  .btn-ruta-view { background: #f3f4f6; color: #4b5563; }
+  .btn-ruta-view:visited { color: #4b5563; }
+
+  .status-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 0.9em;
+  }
+  .status-programada { background-color: #e0f2fe; color: #0c54a0; }
+  .status-en_curso { background-color: #fef9c3; color: #854d0e; }
+  .status-completada { background-color: #dcfce7; color: #166534; }
+</style>
+
+<div class="container mt-4">
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Gestión de Rutas</h3>
+    <a href="{% url 'vehiculos:planificar_ruta' %}" class="btn btn-primary">
+      Planificar Nueva Ruta
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Título</th>
+            <th scope="col">Vehículo</th>
+            <th scope="col">Chofer</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Origen</th>
+            <th scope="col">Destino</th>
+            <th scope="col">Estado</th>
+            <th scope="col" style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ruta in rutas %}
+          <tr>
+            <td>{{ ruta.titulo }}</td>
+            <td>{{ ruta.vehiculo.placa|default:"N/A" }}</td>
+            <td>{{ ruta.chofer.user.username|default:"N/A" }}</td>
+            <td>{{ ruta.fecha|date:"d M Y" }}</td>
+            <td>{{ ruta.origen }}</td>
+            <td>{{ ruta.destino }}</td>
+            <td>
+              <span class="status-chip status-{{ ruta.status }}">
+                {{ ruta.get_status_display }}
+              </span>
+            </td>
+            
+            <td style="text-align: center;">
+              
+              {% if ruta.status == 'programada' %}
+                <form action="{% url 'vehiculos:iniciar_ruta' ruta.pk %}" method="POST" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-ruta btn-ruta-start">▶ Iniciar</button>
+                </form>
+              
+              {% elif ruta.status == 'en_curso' %}
+                <form action="{% url 'vehiculos:completar_ruta' ruta.pk %}" method="POST" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-ruta btn-ruta-complete">✔ Completar</button>
+                </form>
+
+              {% elif ruta.status == 'completada' %}
+                <a href="{% url 'vehiculos:detalle_ruta' ruta.pk %}" class="btn-ruta btn-ruta-view">Ver</a>
+              
+              {% endif %}
+            </td>
+            </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center">
+              Aún no hay rutas planificadas.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

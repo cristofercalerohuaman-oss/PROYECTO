@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+<style>
+    /* Contenedor del formulario */
+    .form-container {
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        background-color: white;
+    }
+    
+    /* Disposición de dos columnas para campos cortos */
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .form-row > div {
+        flex: 1; 
+        min-width: 0;
+    }
+
+    /* Estilo general de los campos */
+    .form-field-group p {
+        margin-bottom: 1.25rem !important;
+    }
+    .form-field-group label {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-weight: 600;
+        font-size: 0.95em;
+        color: var(--text-color, #374151);
+    }
+    .form-field-group input, .form-field-group select, .form-field-group textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #e6e9ee;
+    }
+
+    /* Estilo para el mapa */
+    #map {
+        height: 300px; 
+        width: 100%; 
+        border-radius: 8px; 
+        margin-bottom: 1rem; 
+        border: 1px solid #e6e9ee;
+    }
+    
+    .errorlist {
+        color: #dc2626; 
+        list-style: none; 
+        padding-left: 0; 
+        margin-top: 0.25rem;
+        font-size: 0.85em;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2"> 
+            <h2>Registrar Abastecimiento</h2>
+            
+            <div class="form-container">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {{ form.non_field_errors }}
+
+                    <div class="form-field-group"> 
+                        
+                        <div class="form-row">
+                            <div><p>{{ form.vehiculo.label_tag }}{{ form.vehiculo }}{{ form.vehiculo.errors }}</p></div>
+                            <div><p>{{ form.chofer.label_tag }}{{ form.chofer }}{{ form.chofer.errors }}</p></div>
+                        </div>
+
+                        <p>{{ form.fecha.label_tag }}{{ form.fecha }}{{ form.fecha.errors }}</p>
+
+                        <div class="form-row">
+                            <div><p>{{ form.galones.label_tag }}{{ form.galones }}{{ form.galones.errors }}</p></div>
+                            
+                            <div><p>{{ form.costo.label_tag }}{{ form.costo }}{{ form.costo.errors }}</p></div>
+                        </div>
+                        
+                        <div style="display: none;">
+                            <p>{{ form.litros }}</p>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div><p>{{ form.odometro.label_tag }}{{ form.odometro }}{{ form.odometro.errors }}</p></div>
+                            <div><p>{{ form.estacion_nombre.label_tag }}{{ form.estacion_nombre }}{{ form.estacion_nombre.errors }}</p></div>
+                        </div>
+                        
+                        <h4 style="margin-top: 0.5rem; margin-bottom: 1rem;">Ubicación (busca o haz clic en el mapa)</h4>
+                        <div id="map"></div> 
+                        
+                        <div class="form-row">
+                            <div><p>{{ form.lat.label_tag }}{{ form.lat }}{{ form.lat.errors }}</p></div>
+                            <div><p>{{ form.lng.label_tag }}{{ form.lng }}{{ form.lng.errors }}</p></div>
+                        </div>
+                        
+                        <p>{{ form.comprobante.label_tag }}{{ form.comprobante }}{{ form.comprobante.errors }}</p>
+                        <p>{{ form.notas.label_tag }}{{ form.notas }}{{ form.notas.errors }}</p>
+                        
+                    </div>
+                    
+                    <button class="btn btn-primary" type="submit">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. OBTENER ELEMENTOS DEL FORMULARIO
+        const latInput = document.getElementById('id_lat');
+        const lngInput = document.getElementById('id_lng');
+        const estacionInput = document.getElementById('id_estacion_nombre');
+        const galonesInput = document.getElementById('id_galones');
+        const litrosInput = document.getElementById('id_litros');
+        
+        // --- CONSTANTES ---
+        const CONVERSION_FACTOR = 3.78541;
+        const DEFAULT_CENTER = [-12.046374, -77.042793]; // Lima
+        
+        // 2. CONFIGURACIÓN INICIAL DEL MAPA
+        const defaultLat = parseFloat(latInput.value) || DEFAULT_CENTER[0];
+        const defaultLng = parseFloat(lngInput.value) || DEFAULT_CENTER[1];
+        const startCenter = [defaultLat, defaultLng];
+
+        var map = L.map('map').setView(startCenter, 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        var marker = L.marker(startCenter).addTo(map);
+
+        // ===============================================
+        // LÓGICA 1: GALONES A LITROS (CONVERSIÓN)
+        // ===============================================
+
+        function updateLitros() {
+            const galones = parseFloat(galonesInput.value);
+            if (!isNaN(galones) && galones > 0) {
+                const litros = galones * CONVERSION_FACTOR;
+                litrosInput.value = litros.toFixed(2); // Muestra 2 decimales
+            } else {
+                // Si el campo está vacío o inválido, aseguramos que Litros esté vacío para el backend
+                litrosInput.value = '';
+            }
+        }
+        galonesInput.addEventListener('input', updateLitros);
+        
+        // ===============================================
+        // LÓGICA 2: MAPA/GPS (GEOLOCALIZACIÓN)
+        // ===============================================
+
+        function updateMarkerAndForm(latlng, isGPS = false) {
+            var lat = latlng.lat.toFixed(6);
+            var lng = latlng.lng.toFixed(6);
+
+            marker.setLatLng(latlng);
+            latInput.value = lat;
+            lngInput.value = lng;
+            
+            // Si no viene de GPS, desbloqueamos para edición manual
+            if (!isGPS) {
+                latInput.removeAttribute('readonly');
+                lngInput.removeAttribute('readonly');
+                map.dragging.enable();
+            }
+        }
+
+        // Búsqueda de dirección
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: 'Buscar dirección o grifo...',
+            geocoder: L.Control.Geocoder.nominatim()
+        })
+        .on('markgeocode', function(e) {
+            var latlng = e.geocode.center;
+            map.setView(latlng, 16);
+            updateMarkerAndForm(latlng);
+        })
+        .addTo(map);
+
+        // Escuchar clics en el mapa
+        map.on('click', function(e) {
+            updateMarkerAndForm(e.latlng);
+        });
+        
+        // GPS (Geolocalización Automática)
+        function setLocation(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const newLatLng = L.latLng(latitude, longitude);
+
+            // LLENAR Y PROTEGER LOS CAMPOS
+            latInput.value = latitude.toFixed(6);
+            lngInput.value = longitude.toFixed(6);
+            latInput.setAttribute('readonly', 'readonly');
+            lngInput.setAttribute('readonly', 'readonly');
+
+            // MOVER EL MAPA Y MARCADOR
+            map.setView(newLatLng, 16);
+            marker.setLatLng(newLatLng);
+            map.dragging.disable(); 
+
+            // UX
+            if (estacionInput) {
+                 estacionInput.setAttribute('placeholder', 'Ubicación GPS registrada automáticamente. Ingrese el nombre de la estación.');
+            }
+        }
+        
+        function errorLocation(error) {
+            console.warn(`ERROR(${error.code}): ${error.message}`);
+            alert('¡Ubicación GPS no disponible! Los campos de Latitud/Longitud están activos para ingreso manual o clic en el mapa.');
+            latInput.removeAttribute('readonly');
+            lngInput.removeAttribute('readonly');
+            map.dragging.enable();
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(setLocation, errorLocation, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        }
+        
+        // --- Fin de GPS ---
+    });
+</script>
+{% endblock %}

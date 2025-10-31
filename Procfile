@@ -1,0 +1,1 @@
+web: waitress-serve --port=$PORT flota_site.wsgi:application

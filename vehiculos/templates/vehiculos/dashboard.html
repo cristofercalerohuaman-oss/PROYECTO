@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard - Flota{% endblock %}
+
+{% block content %}
+
+<style>
+  /* (Todos tus estilos anteriores se mantienen igual) */
+  .btn {
+    display: inline-block; padding: 0.55rem 0.9rem; border-radius: 10px;
+    text-decoration: none; font-weight: 600; border: 1px solid transparent;
+    cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); opacity: .96; }
+  .btn-primary {
+    background: var(--primary, #0b74ff); color: #fff;
+    border-color: var(--primary, #0b74ff);
+  }
+  .btn-ruta {
+    display: inline-block; padding: 0.3rem 0.6rem; border-radius: 6px;
+    text-decoration: none; font-weight: 600; border: 1px solid transparent;
+    cursor: pointer; font-size: 0.85em;
+  }
+  .btn-ruta-start { background: #e0f2fe; color: #0c54a0; }
+  .btn-ruta-complete { background: #dcfce7; color: #166534; }
+  
+  .ruta-item {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
+  }
+  .ruta-item:last-child { border-bottom: none; }
+  .ruta-info { flex: 1; }
+  .ruta-info strong { color: #111827; }
+  .ruta-info small { color: var(--muted, #6b7280); display: block; }
+  .ruta-status { font-weight: 600; font-size: 0.9em; }
+  .ruta-status.en-curso { color: #0c54a0; }
+  .dashboard { padding: 1rem 0; }
+  
+  .dashboard-kpis {
+    display: grid;
+    /* ¡MODIFICADO! Por defecto 1 columna, luego se ajusta */
+    grid-template-columns: 1fr; 
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  /* ¡MODIFICADO! Se activa solo si es admin */
+  .dashboard-kpis.is-admin {
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+  }
+
+  .stat-card {
+    background: var(--card, #fff); padding: 1.25rem;
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 30, 0.08));
+  }
+  .stat-card h3 {
+    margin: 0; font-size: 2.2rem;
+    line-height: 1.2;
+  }
+  .stat-card p { margin: 0.4rem 0 0; color: var(--muted, #6b7280); font-size: 1rem; font-weight: 500;}
+  .stat-card.stat-card-danger {
+    background: #fff1f2;
+    border: 1px solid #f9a8a8;
+  }
+  .stat-card.stat-card-danger h3 { color: #c81e1e; }
+  .stat-card.stat-card-danger p { color: #9f1239; }
+  
+  .tiles { 
+    display: grid; 
+    /* ¡MODIFICADO! Por defecto 1 columna */
+    grid-template-columns: 1fr; 
+    gap: 1.25rem; 
+  }
+  /* ¡MODIFICADO! Se activa solo si es admin */
+  .tiles.is-admin {
+    grid-template-columns: 1fr 1fr; /* 2 columnas */
+  }
+
+  .tile {
+    background: var(--card, #fff); padding: 1.5rem;
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 30, 0.08));
+  }
+  .tile.wide { grid-column: 1 / -1; }
+  .tile h4 {
+    margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+  }
+  .tile ul { margin: 0; padding-left: 0; list-style-type: none; }
+  .tile li { margin-bottom: 0.5rem; }
+  .quick-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .quick {
+    display: inline-block; padding: 0.6rem 0.9rem; border-radius: 8px;
+    background: #f1f8ff; color: var(--primary, #0b74ff);
+    text-decoration: none; font-weight: 600;
+  }
+  .quick:hover { background: #e2f1ff; }
+  .alerta-mantenimiento {
+    background: #fff1f2; border: 1px solid #f9a8a8; border-radius: 8px;
+    padding: 12px; margin-bottom: 1rem;
+  }
+  .alerta-mantenimiento h5 { color: #9f1239; margin-top: 0; margin-bottom: 8px; }
+  .alerta-mantenimiento ul { margin: 0; padding-left: 20px; }
+  .alerta-mantenimiento li {
+    color: #4b0000; margin-bottom: 5px; font-size: 0.95em;
+  }
+  .alerta-mantenimiento small { color: #7f1d1d; }
+  
+  /* (Tus media queries se mantienen igual) */
+  @media (max-width: 900px) {
+    .dashboard-kpis.is-admin {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .tiles.is-admin { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .dashboard-kpis.is-admin {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="dashboard">
+
+  {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
+
+    <div class="dashboard-kpis is-admin"> <div class="stat-card">
+        <h3>{{ vehiculos_count|default:0 }}</h3>
+        <p>Vehículos</p>
+      </div>
+      <div class="stat-card {% if mantenimientos_pendientes > 0 %}stat-card-danger{% endif %}">
+        <h3>{{ mantenimientos_pendientes|default:0 }}</h3>
+        <p>Mantenimientos atrasados</p>
+      </div>
+      <div class="stat-card">
+        <h3>{{ rutas_hoy_count|default:0 }}</h3> 
+        <p>Rutas hoy</p>
+      </div>
+    </div>
+    
+    <section class="tiles is-admin"> <article class="tile">
+        <h4>Mantenimientos</h4>
+        {% if vehiculos_con_mantenimiento %}
+          <div class="alerta-mantenimiento">
+            <h5>¡Mantenimiento Requerido!</h5>
+            <ul>
+              {% for v in vehiculos_con_mantenimiento %}
+                <li>
+                  <strong>{{ v.placa }}</strong> ({{ v.marca }} {{ v.modelo }})
+                  <br>
+                  <small>KM Actual: {{ v.kilometraje }} / Límite: {{ v.km_proximo_mantenimiento }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Mantenimientos Recientes</h5>
+        <ul>
+          {% for m in ultimos_mantenimientos %}
+            <li><strong>{{ m.vehiculo }}</strong> — {{ m.tipo }} • {{ m.fecha|date:"d M Y" }}</li>
+          {% empty %}
+            <li>No hay mantenimientos recientes.</li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      <article class="tile">
+        <h4>Rutas de Hoy</h4>
+        <ul>
+          {% for r in rutas_hoy %}
+            <li class="ruta-item">
+              <div class="ruta-info">
+                <strong>{{ r.titulo }}</strong>
+                <small>{{ r.origen|default:"N/A" }} → {{ r.destino|default:"N/A" }} ({{ r.vehiculo.placa }})</small>
+              </div>
+              <div class="ruta-accion">
+                {% if r.status == r.STATUS_PROGRAMADA or r.status == 'programada' %}
+                  <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ruta btn-ruta-start">▶ Iniciar</button>
+                  </form>
+                {% elif r.status == r.STATUS_EN_CURSO or r.status == 'en_curso' %}
+                  <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ruta btn-ruta-complete">✔ Completar</button>
+                  </form>
+                {% endif %}
+              </div>
+            </li>
+          {% empty %}
+            <li>No hay rutas programadas para hoy.</li>
+          {% endfor %}
+        </ul>
+        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Rutas Futuras</h5>
+        <ul>
+          {% for r in rutas_futuras %}
+             <li class="ruta-item">
+               <div class="ruta-info">
+                 <strong>{{ r.titulo }}</strong>
+                 <small>{{ r.fecha|date:"d M Y" }} ({{ r.vehiculo.placa }})</small>
+               </div>
+             </li>
+          {% empty %}
+            <li>No hay rutas programadas a futuro.</li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      <article class="tile wide">
+        <h4>Accesos rápidos</h4>
+        <div class="quick-grid">
+          <a class="quick" href="{% url 'vehiculos:listar_vehiculos' %}">Lista de vehículos</a>
+          <a class="quick" href="{% url 'vehiculos:lista_cargas' %}">Lista de Cargas</a>
+          {% if user.is_staff %}
+            <a class="quick" href="{% url 'admin:index' %}">Panel admin</a>
+            <a class="quick" href="{% url 'vehiculos:exportar_excel' %}">Exportar Excel</a>
+          {% endif %}
+        </div>
+      </article>
+    </section>
+
+  {% else %}
+
+    <div class="dashboard-kpis"> <div class="stat-card">
+        <h3>{{ rutas_hoy_count|default:0 }}</h3> 
+        <p>Mis Rutas para Hoy</p>
+      </div>
+    </div>
+    
+    <section class="tiles"> <article class="tile wide"> <h4>Mis Rutas de Hoy</h4>
+        <ul>
+          {% for r in rutas_hoy %}
+            <li class="ruta-item">
+              <div class="ruta-info">
+                <strong>{{ r.titulo }}</strong>
+                <small>{{ r.origen|default:"N/A" }} → {{ r.destino|default:"N/A" }} ({{ r.vehiculo.placa }})</small>
+              </div>
+              <div class="ruta-accion">
+                {% if r.status == r.STATUS_PROGRAMADA or r.status == 'programada' %}
+                  <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ruta btn-ruta-start">▶ Iniciar</button>
+                  </form>
+                {% elif r.status == r.STATUS_EN_CURSO or r.status == 'en_curso' %}
+                  <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ruta btn-ruta-complete">✔ Completar</button>
+                  </form>
+                {% endif %}
+              </div>
+            </li>
+          {% empty %}
+            <li>No tienes rutas programadas para hoy.</li>
+          {% endfor %}
+        </ul>
+        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Mis Rutas Futuras</h5>
+        <ul>
+          {% for r in rutas_futuras %}
+             <li class="ruta-item">
+               <div class="ruta-info">
+                 <strong>{{ r.titulo }}</strong>
+                 <small>{{ r.fecha|date:"d M Y" }} ({{ r.vehiculo.placa }})</small>
+               </div>
+             </li>
+          {% empty %}
+            <li>No tienes rutas programadas a futuro.</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </section>
+  
+  {% endif %}
+  </div>
+{% endblock %}
