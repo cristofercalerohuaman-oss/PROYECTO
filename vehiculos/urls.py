@@ -5,6 +5,7 @@ from . import views
 app_name = 'vehiculos'
 
 urlpatterns = [
+    path('', views.dashboard, name='home'),
     path('vehiculos/', views.listar_vehiculos, name='listar_vehiculos'),
     path('vehiculos/add/', views.agregar_vehiculo, name='agregar_vehiculo'),
     path('vehiculos/<int:pk>/edit/', views.editar_vehiculo, name='editar_vehiculo'),
