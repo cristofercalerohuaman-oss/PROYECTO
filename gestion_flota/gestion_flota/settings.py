@@ -6,7 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURIDAD ---
 SECRET_KEY = 'django-insecure-(3b9th=9^vl001j65^k05n@5vrj-ha_htjb)8tnjs%d_ccu&@b'  
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'unemergent-nonascendently-nickole.ngrok-free.dev']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'unemergent-nonascendently-nickole.ngrok-free.dev','.vercel.app',
+    'proyecto-theta-nine.vercel.app',
+    'proyecto-git-main-cristofers-projects-637cb905.vercel.app',
+    'proyecto-gvvpo4zmu-cristofers-projects-637cb905.vercel.app',
+]
 CSRF_TRUSTED_ORIGINS = [
     'https://unemergent-nonascendently-nickole.ngrok-free.dev',
     # añade aquí https://<tu-otro-subdominio-ngrok>
