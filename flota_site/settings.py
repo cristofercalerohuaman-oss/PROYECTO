@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SEGURIDAD ---
 SECRET_KEY = 'django-insecure-(3b9th=9^vl001j65^k05n@5vrj-ha_htjb)8tnjs%d_ccu&@b'
 DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.tudominio.com', 'tu-ip-de-servidor']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.vercel.app', '.tudominio.com', 'tu-ip-de-servidor', 'proyecto-theta-nine.vercel.app','proyecto-git-main-cristofers-projects-637cb905.vercel.app',]
 
 
 # --- APPS INSTALADAS ---
