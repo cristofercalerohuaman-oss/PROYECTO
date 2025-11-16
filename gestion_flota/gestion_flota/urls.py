@@ -1,9 +1,13 @@
-# gestion_flota/gestion_flota/urls.py
-from django.contrib import admin
-from django.urls import path, include
+"""
+WSGI config for gestion_flota project.
+... (el resto de tus comentarios) ...
+"""
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')), 
-    path('', include('vehiculos.urls', namespace='vehiculos')),
-]
+import os
+from django.core.wsgi import get_wsgi_application
+
+# --- ¡LA LÍNEA CORREGIDA! ---
+# Le decimos la ruta completa al archivo settings.py
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gestion_flota.gestion_flota.settings')
+
+app = get_wsgi_application()
