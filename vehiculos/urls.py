@@ -5,9 +5,6 @@ from . import views
 app_name = 'vehiculos'
 
 urlpatterns = [
-    # --- ¡RUTA RAÍZ AÑADIDA AQUÍ! ---
-    path('', views.dashboard, name='home'), 
-
     # --- Dashboard (Ruta de la app) ---
     path('dashboard/', views.dashboard, name='dashboard'),
 
@@ -49,7 +46,7 @@ urlpatterns = [
     path('perfil/', views.mi_perfil, name='mi_perfil'),
     path('reportes/consumo/', views.reporte_consumo, name='reporte_consumo'),
     path('exportar/excel/', views.exportar_todas_tablas, name='exportar_excel'),
-
+    
     # --- Auth (Signup) ---
     path('signup/', views.signup, name='signup'),
 ]

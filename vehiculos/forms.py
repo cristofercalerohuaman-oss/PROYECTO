@@ -43,7 +43,7 @@ class CargaCombustibleForm(forms.ModelForm):
     galones = forms.DecimalField(
         max_digits=8, 
         decimal_places=2, 
-        required=False,
+        required=False, # Es opcional, por si prefieren llenar litros
         label="Cantidad en Galones",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Ej: 20.5'})
     )
@@ -51,31 +51,46 @@ class CargaCombustibleForm(forms.ModelForm):
     
     class Meta:
         model = CargaCombustible
-        # Eliminamos 'litros' de los fields para que no se muestre por defecto
-        # Aunque lo necesitamos para el guardado, lo manejaremos con JS
+        # Movemos 'galones' al lado de 'litros'
         fields = [
-            'vehiculo','chofer','fecha','litros','costo','odometro',
+            'vehiculo','chofer','fecha',
+            'galones', 'litros', # <-- Ordenamos los campos
+            'costo','odometro',
             'estacion_nombre','lat','lng','comprobante','notas'
         ]
         widgets = {
             'fecha': forms.DateTimeInput(attrs={'type':'datetime-local', 'class': 'form-control'}),
-            # Añadimos la clase form-control a los otros campos para que se vean bien
             'vehiculo': forms.Select(attrs={'class': 'form-control'}),
             'chofer': forms.Select(attrs={'class': 'form-control'}),
-            'litros': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            
+            # Hacemos que 'litros' sea de solo lectura
+            'litros': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'readonly': True}), 
+            
             'costo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'odometro': forms.NumberInput(attrs={'class': 'form-control', 'step': '1'}),
             'estacion_nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'lat': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001'}),
-            'lng': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001'}),
+            'lat': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'readonly': True}), # Hacemos Lat/Lng readonly
+            'lng': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'readonly': True}),
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
-    # El método clean se asegura de que el valor de 'litros' se establezca 
-    # si se ingresó un valor en 'galones'.
+    # 2. ¡NUEVA FUNCIÓN __init__!
+    def __init__(self, *args, **kwargs):
+        """
+        Hacemos que 'litros' no sea requerido, ya que el usuario llenará 'galones'.
+        """
+        super().__init__(*args, **kwargs)
+        self.fields['litros'].required = False
+
+    # 3. ¡MÉTODO CLEAN CORREGIDO!
     def clean(self):
+        """
+        El método clean se asegura de que el valor de 'litros' se establezca 
+        si se ingresó un valor en 'galones'.
+        """
         cleaned_data = super().clean()
         galones = cleaned_data.get('galones')
+        litros = cleaned_data.get('litros')
         
         # Si se ingresó un valor en galones, lo convertimos a litros
         if galones:
@@ -84,8 +99,12 @@ class CargaCombustibleForm(forms.ModelForm):
             # Sobreescribimos el campo 'litros' del modelo
             cleaned_data['litros'] = litros_calculados.quantize(Decimal('0.01'))
         
+        # Si el usuario no llenó NI galones NI litros, lanzamos un error
+        elif not litros:
+            raise forms.ValidationError("Debes ingresar una cantidad en Galones (o Litros si el cálculo falla).")
+            
         return cleaned_data
-
+    
 class VehiculoForm(forms.ModelForm):
     class Meta:
         model = Vehiculo
