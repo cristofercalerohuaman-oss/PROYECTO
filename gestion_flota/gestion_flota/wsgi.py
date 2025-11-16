@@ -13,4 +13,6 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gestion_flota.settings')
 
-application = get_wsgi_application()
+# ¡CORRECCIÓN PARA VERCEL!
+# Cambiamos 'application' por 'app' para que Vercel la pueda encontrar.
+app = get_wsgi_application()
