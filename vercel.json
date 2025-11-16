@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "gestion_flota/wsgi.py",
+      "src": "flota_site/wsgi.py",
       "use": "@vercel/python",
       "config": { 
         "maxLambdaSize": "15mb",
@@ -17,8 +17,12 @@
       "dest": "/staticfiles/$1"
     },
     {
+      "src": "/media/(.*)",
+      "dest": "/media/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "gestion_flota/wsgi.py"
+      "dest": "flota_site/wsgi.py"
     }
   ]
 }
