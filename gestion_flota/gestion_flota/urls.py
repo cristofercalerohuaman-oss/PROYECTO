@@ -8,8 +8,8 @@ urlpatterns = [
     # --- LOGIN/LOGOUT ---
     path('accounts/', include('django.contrib.auth.urls')), 
 
-    # --- ¡LA LÍNEA MÁS IMPORTANTE! ---
-    # Pasa CUALQUIER otra petición (incluyendo la raíz '/')
-    # al archivo urls.py de tu aplicación 'vehiculos'.
+    # --- ¡LO ÚNICO QUE IMPORTA! ---
+    # Incluye TODAS las URLs de tu app (incluyendo la raíz)
+    # Vercel buscará en 'vehiculos.urls' la ruta para ''
     path('', include('vehiculos.urls', namespace='vehiculos')),
 ]
