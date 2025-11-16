@@ -1,7 +1,7 @@
 # gestion_flota/gestion_flota/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from vehiculos import views as vehiculos_views  # <-- Importamos la vista del dashboard
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -10,10 +10,12 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')), 
 
     # --- RUTA RAÍZ (HOME) ---
-    # 1. Define la ruta raíz (/) para que apunte a tu vista de dashboard
-    path('', vehiculos_views.dashboard, name='home'),
+    # ¡ESTO DEBE IR PRIMERO!
+    # Redirige la raíz (/) a /dashboard/
+    path('', RedirectView.as_view(url='/dashboard/', permanent=False), name='home'),
 
     # --- TUS APLICACIONES ---
-    # 2. Incluye TODAS las demás URLs de tu app (como /dashboard/, /vehiculos/, etc.)
+    # ¡ESTO DEBE IR SEGUNDO!
+    # Incluye TODAS las demás URLs de tu app (como /dashboard/, /vehiculos/, etc.)
     path('', include('vehiculos.urls', namespace='vehiculos')),
 ]
