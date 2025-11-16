@@ -7,13 +7,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # auth (login/logout/password reset)
-    path('accounts/', include('django.contrib.auth.urls')),
-    
-    # --- RUTA RAÍZ (HOME) ---
-    # Esto redirige la página principal ('/') a la URL 'vehiculos:dashboard'
-    path('', RedirectView.as_view(pattern_name='vehiculos:dashboard', permanent=False)),
+    path('accounts/', include('django.contrib.auth.urls')), 
 
-    # --- TUS APLICACIONES ---
+    # --- TUS APLICACIONES (¡ESTO DEBE IR PRIMERO!) ---
     # Esto incluye TODAS las URLs de tu vehiculos/urls.py
+    # y define el namespace 'vehiculos' (para que 'vehiculos:dashboard' funcione)
     path('', include('vehiculos.urls', namespace='vehiculos')),
+
+    # --- RUTA RAÍZ (HOME) (¡ESTO DEBE IR DESPUÉS!) ---
+    # Ahora Django ya sabe qué es 'vehiculos:dashboard'
+    path('', RedirectView.as_view(pattern_name='vehiculos:dashboard', permanent=False), name='home'),
 ]
