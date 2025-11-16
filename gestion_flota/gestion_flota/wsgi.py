@@ -1,13 +1,15 @@
-"""
-WSGI config for gestion_flota project.
-... (el resto de tus comentarios) ...
-"""
+# gestion_flota/gestion_flota/urls.py
+from django.contrib import admin
+from django.urls import path, include
 
-import os
-from django.core.wsgi import get_wsgi_application
+urlpatterns = [
+    path('admin/', admin.site.urls),
 
-# --- ¡LA LÍNEA CORREGIDA! ---
-# Le decimos la ruta completa (con doble 'gestion_flota') al archivo settings.py
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gestion_flota.gestion_flota.settings')
+    # --- LOGIN/LOGOUT ---
+    path('accounts/', include('django.contrib.auth.urls')), 
 
-app = get_wsgi_application()
+    # --- ¡LO ÚNICO QUE IMPORTA! ---
+    # Incluye TODAS las URLs de tu app (incluyendo la raíz)
+    # Vercel buscará en 'vehiculos.urls' la ruta para ''
+    path('', include('vehiculos.urls', namespace='vehiculos')),
+]
