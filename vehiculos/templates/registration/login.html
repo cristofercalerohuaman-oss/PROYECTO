@@ -1,30 +1,116 @@
 {% extends "base.html" %}
-{% block title %}Iniciar sesión - Flota{% endblock %}
+{% load static %}
+
+{% block title %}Iniciar Sesión - Flota{% endblock %}
 
 {% block content %}
-<div class="card login-card">
-  <h1 class="login-title">Iniciar sesión</h1>
 
-  {% if form.errors %}
-    <div class="msg error">Credenciales incorrectas — intenta de nuevo.</div>
-  {% endif %}
+<style>
+  .login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh; /* Ocupa buena parte de la pantalla */
+    background-color: #f9fafb;
+  }
+  .login-card {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+  }
+  .login-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #111827;
+  }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  /* Forzamos el estilo de los inputs */
+  .form-control-login {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Importante para que no se salga */
+  }
+  .form-control-login:focus {
+    border-color: #0b74ff;
+    outline: 2px solid rgba(11, 116, 255, 0.2);
+  }
+  .btn-login {
+    width: 100%;
+    padding: 0.85rem;
+    background-color: #0b74ff;
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+  }
+  .btn-login:hover { background-color: #0060df; }
+  
+  .login-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .login-footer a { color: #6b7280; text-decoration: none; }
+  .login-footer a:hover { color: #0b74ff; }
+</style>
 
-  <form method="post" class="form-login" novalidate>
-    {% csrf_token %}
+<div class="login-wrapper">
+  <div class="login-card">
+    <h1 class="login-title">Bienvenido</h1>
+    
+    <form method="post">
+      {% csrf_token %}
+      
+      {% if form.errors %}
+        <div class="alert alert-danger text-center mb-3" style="color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 8px; font-size: 0.9em;">
+          Usuario o contraseña incorrectos.
+        </div>
+      {% endif %}
 
-    <label for="{{ form.username.id_for_label }}">Usuario</label>
-    {{ form.username }}
+      <div class="form-group">
+        <label for="id_username">Usuario</label>
+        {{ form.username }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_password">Contraseña</label>
+        {{ form.password }}
+      </div>
+      
+      <button type="submit" class="btn-login">Ingresar</button>
+    </form>
 
-    <label for="{{ form.password.id_for_label }}">Contraseña</label>
-    {{ form.password }}
-
-    <button class="btn btn-primary" type="submit">Entrar</button>
-  </form>
-
-  <div class="login-links">
-    <a href="{% url 'vehiculos:signup' %}">¿No tienes cuenta? Regístrate</a>
-    <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+    <div class="login-footer">
+      <a href="{% url 'vehiculos:signup' %}">¿No tienes cuenta? <strong>Regístrate</strong></a>
+    </div>
   </div>
 </div>
-{% endblock %}
 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var inputs = document.querySelectorAll('.login-card input');
+    inputs.forEach(function(input) {
+      input.classList.add('form-control-login');
+    });
+  });
+</script>
+{% endblock %}
