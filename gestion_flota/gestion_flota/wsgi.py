@@ -1,15 +1,8 @@
-# gestion_flota/gestion_flota/urls.py
-from django.contrib import admin
-from django.urls import path, include
+import os
+from django.core.wsgi import get_wsgi_application
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
+# Apuntamos al archivo settings correcto
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gestion_flota.gestion_flota.settings')
 
-    # --- LOGIN/LOGOUT ---
-    path('accounts/', include('django.contrib.auth.urls')), 
-
-    # --- ¡LO ÚNICO QUE IMPORTA! ---
-    # Incluye TODAS las URLs de tu app (incluyendo la raíz)
-    # Vercel buscará en 'vehiculos.urls' la ruta para ''
-    path('', include('vehiculos.urls', namespace='vehiculos')),
-]
+# Definimos la variable 'app' para Vercel
+app = get_wsgi_application()
