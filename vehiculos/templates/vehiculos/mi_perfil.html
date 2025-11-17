@@ -1,65 +1,172 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
 {% block title %}Mi Perfil - Flota{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h1>Mi Perfil</h1>
-  <p class="muted">Aquí puedes actualizar tu información de contacto y cambiar tu contraseña.</p>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+<style>
+  .profile-container {
+    max-width: 900px;
+    margin: 2rem auto;
+  }
+  .profile-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .profile-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  .profile-header p {
+    color: #6b7280;
+  }
 
-    <div class="card">
-      <h2>Actualizar Datos</h2>
-      {% if perfil_form %}
-        <form method="post">
-          {% csrf_token %}
-          
-          <p>
-            {{ perfil_form.telefono.label_tag }}
-            {{ perfil_form.telefono }}
-            {{ perfil_form.telefono.errors }}
-          </p>
-          <p>
-            {{ perfil_form.email.label_tag }}
-            {{ perfil_form.email }}
-            {{ perfil_form.email.errors }}
-          </p>
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
 
-          <button type="submit" name="update_profile" class="btn btn-primary">Guardar Cambios</button>
-        </form>
-      {% else %}
-        <p class="msg error">El formulario de perfil no está disponible.</p>
-      {% endif %}
+  .profile-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f3f4f6;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 0.625rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus {
+    border-color: #0b74ff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(11, 116, 255, 0.1);
+  }
+  
+  .btn-profile {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .btn-profile:active { transform: scale(0.98); }
+  
+  .btn-save { background-color: #0b74ff; color: white; }
+  .btn-password { background-color: #4b5563; color: white; }
+
+  /* Móvil */
+  @media (max-width: 768px) {
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="container profile-container">
+  
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} fade show mb-4" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="profile-header">
+    <h2>Mi Perfil</h2>
+    <p>Gestiona tu información personal y seguridad</p>
+  </div>
+
+  <div class="cards-grid">
+    
+    <div class="profile-card">
+      <div class="card-title">
+        <span>👤</span> Actualizar Datos
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="update_profile" value="1">
+        
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" value="{{ user.username }}" disabled style="background-color: #f9fafb; color: #6b7280;">
+        </div>
+
+        <div class="form-group">
+          <label>{{ perfil_form.telefono.label }}</label>
+          {{ perfil_form.telefono }}
+          {% if perfil_form.telefono.errors %}<small class="text-danger">{{ perfil_form.telefono.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ perfil_form.email.label }}</label>
+          {{ perfil_form.email }}
+          {% if perfil_form.email.errors %}<small class="text-danger">{{ perfil_form.email.errors.0 }}</small>{% endif %}
+        </div>
+
+        <button type="submit" class="btn-profile btn-save">Guardar Cambios</button>
+      </form>
     </div>
 
-    <div class="card">
-      <h2>Cambiar Contraseña</h2>
-      {% if password_form %}
-        <form method="post">
-          {% csrf_token %}
+    <div class="profile-card">
+      <div class="card-title">
+        <span>🔒</span> Cambiar Contraseña
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="change_password" value="1">
 
-          <p>
-            {{ password_form.old_password.label_tag }}
-            {{ password_form.old_password }}
-            {{ password_form.old_password.errors }}
-          </p>
-           <p>
-            {{ password_form.new_password1.label_tag }}
-            {{ password_form.new_password1 }}
-            {{ password_form.new_password1.errors }}
-          </p>
-           <p>
-            {{ password_form.new_password2.label_tag }}
-            {{ password_form.new_password2 }}
-            {{ password_form.new_password2.errors }}
-          </p>
-          
-          <button type="submit" name="change_password" class="btn btn-primary">Cambiar Contraseña</button>
-        </form>
-      {% else %}
-         <p class="msg error">El formulario de cambio de contraseña no está disponible.</p>
-      {% endif %}
+        <div class="form-group">
+          <label>{{ password_form.old_password.label }}</label>
+          {{ password_form.old_password }}
+          {% if password_form.old_password.errors %}<small class="text-danger">{{ password_form.old_password.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ password_form.new_password1.label }}</label>
+          {{ password_form.new_password1 }}
+          {% if password_form.new_password1.errors %}<small class="text-danger">{{ password_form.new_password1.errors.0 }}</small>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label>{{ password_form.new_password2.label }}</label>
+          {{ password_form.new_password2 }}
+          {% if password_form.new_password2.errors %}<small class="text-danger">{{ password_form.new_password2.errors.0 }}</small>{% endif %}
+        </div>
+
+        <button type="submit" class="btn-profile btn-password">Actualizar Contraseña</button>
+      </form>
     </div>
 
-  </div> </div>
+  </div>
+</div>
 {% endblock %}

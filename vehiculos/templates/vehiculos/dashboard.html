@@ -5,119 +5,164 @@
 {% block content %}
 
 <style>
-  /* (Todos tus estilos anteriores se mantienen igual) */
-  .btn {
-    display: inline-block; padding: 0.55rem 0.9rem; border-radius: 10px;
-    text-decoration: none; font-weight: 600; border: 1px solid transparent;
-    cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease;
-  }
-  .btn:hover { transform: translateY(-1px); opacity: .96; }
-  .btn-primary {
-    background: var(--primary, #0b74ff); color: #fff;
-    border-color: var(--primary, #0b74ff);
-  }
-  .btn-ruta {
-    display: inline-block; padding: 0.3rem 0.6rem; border-radius: 6px;
-    text-decoration: none; font-weight: 600; border: 1px solid transparent;
-    cursor: pointer; font-size: 0.85em;
-  }
-  .btn-ruta-start { background: #e0f2fe; color: #0c54a0; }
-  .btn-ruta-complete { background: #dcfce7; color: #166534; }
+  /* ========================================= */
+  /* ESTILOS "SUPER TRABAJADOS"           */
+  /* ========================================= */
   
-  .ruta-item {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
-  }
-  .ruta-item:last-child { border-bottom: none; }
-  .ruta-info { flex: 1; }
-  .ruta-info strong { color: #111827; }
-  .ruta-info small { color: var(--muted, #6b7280); display: block; }
-  .ruta-status { font-weight: 600; font-size: 0.9em; }
-  .ruta-status.en-curso { color: #0c54a0; }
-  .dashboard { padding: 1rem 0; }
+  .dashboard { padding: 1.5rem 0; }
   
+  /* --- KPIs Superiores (Tarjetas de Estadísticas) --- */
   .dashboard-kpis {
     display: grid;
-    /* ¡MODIFICADO! Por defecto 1 columna, luego se ajusta */
-    grid-template-columns: 1fr; 
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
   }
   
-  /* ¡MODIFICADO! Se activa solo si es admin */
-  .dashboard-kpis.is-admin {
-    grid-template-columns: repeat(3, 1fr); /* 3 columnas */
-  }
-
   .stat-card {
-    background: var(--card, #fff); padding: 1.25rem;
-    border-radius: var(--radius, 12px);
-    box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 30, 0.08));
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f3f4f6;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
   }
-  .stat-card h3 {
-    margin: 0; font-size: 2.2rem;
-    line-height: 1.2;
-  }
-  .stat-card p { margin: 0.4rem 0 0; color: var(--muted, #6b7280); font-size: 1rem; font-weight: 500;}
-  .stat-card.stat-card-danger {
-    background: #fff1f2;
-    border: 1px solid #f9a8a8;
-  }
-  .stat-card.stat-card-danger h3 { color: #c81e1e; }
-  .stat-card.stat-card-danger p { color: #9f1239; }
   
-  .tiles { 
-    display: grid; 
-    /* ¡MODIFICADO! Por defecto 1 columna */
-    grid-template-columns: 1fr; 
-    gap: 1.25rem; 
-  }
-  /* ¡MODIFICADO! Se activa solo si es admin */
-  .tiles.is-admin {
-    grid-template-columns: 1fr 1fr; /* 2 columnas */
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
   }
 
-  .tile {
-    background: var(--card, #fff); padding: 1.5rem;
-    border-radius: var(--radius, 12px);
-    box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 30, 0.08));
+  .stat-card h3 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
   }
-  .tile.wide { grid-column: 1 / -1; }
-  .tile h4 {
-    margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 0.5rem;
-  }
-  .tile ul { margin: 0; padding-left: 0; list-style-type: none; }
-  .tile li { margin-bottom: 0.5rem; }
-  .quick-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-  .quick {
-    display: inline-block; padding: 0.6rem 0.9rem; border-radius: 8px;
-    background: #f1f8ff; color: var(--primary, #0b74ff);
-    text-decoration: none; font-weight: 600;
-  }
-  .quick:hover { background: #e2f1ff; }
-  .alerta-mantenimiento {
-    background: #fff1f2; border: 1px solid #f9a8a8; border-radius: 8px;
-    padding: 12px; margin-bottom: 1rem;
-  }
-  .alerta-mantenimiento h5 { color: #9f1239; margin-top: 0; margin-bottom: 8px; }
-  .alerta-mantenimiento ul { margin: 0; padding-left: 20px; }
-  .alerta-mantenimiento li {
-    color: #4b0000; margin-bottom: 5px; font-size: 0.95em;
-  }
-  .alerta-mantenimiento small { color: #7f1d1d; }
   
-  /* (Tus media queries se mantienen igual) */
-  @media (max-width: 900px) {
-    .dashboard-kpis.is-admin {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    .tiles.is-admin { grid-template-columns: 1fr; }
+  .stat-card p {
+    margin: 0.5rem 0 0;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
   }
-  @media (max-width: 600px) {
-    .dashboard-kpis.is-admin {
-      grid-template-columns: 1fr;
-    }
+  
+  /* Alerta Roja para KPIs */
+  .stat-card.danger {
+    background-color: #fef2f2;
+    border-color: #fee2e2;
+  }
+  .stat-card.danger h3 { color: #dc2626; }
+  .stat-card.danger p { color: #991b1b; }
+  
+  /* --- Grid Principal (2 Columnas) --- */
+  .tiles {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Columna ancha y columna estrecha */
+    gap: 1.5rem;
+  }
+  
+  .tile {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f3f4f6;
+    height: 100%; /* Para que se estiren igual */
+  }
+  
+  .tile h4 {
+    margin-top: 0;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #f3f4f6;
+    color: #374151;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  
+  .tile h5 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* --- Items de Ruta --- */
+  .ruta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .ruta-item:last-child { border-bottom: none; }
+  
+  .ruta-info strong { display: block; color: #1f2937; font-size: 1rem; margin-bottom: 2px;}
+  .ruta-info span { color: #6b7280; font-size: 0.85rem; }
+  
+  /* --- Botones de Acción (Pills) --- */
+  .btn-ruta {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 99px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: transform 0.1s;
+  }
+  .btn-ruta:active { transform: scale(0.95); }
+  
+  .btn-ruta-start { background: #dbeafe; color: #1e40af; }
+  .btn-ruta-complete { background: #dcfce7; color: #166534; }
+  .btn-ruta-view { background: #f3f4f6; color: #4b5563; }
+
+  /* --- Alerta de Mantenimiento --- */
+  .alerta-mant {
+    background-color: #fff1f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .alerta-mant h5 { color: #991b1b; margin: 0 0 0.5rem 0; font-size: 0.95rem; border: none;}
+  .alerta-mant p { margin: 0; font-size: 0.9rem; color: #7f1d1d; }
+  .alerta-mant strong { color: #000; }
+
+  /* --- Accesos Rápidos --- */
+  .quick-link {
+    display: block;
+    padding: 0.8rem 1rem;
+    background-color: #f9fafb;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #4b5563;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .quick-link:hover {
+    background-color: #eff6ff;
+    color: #0b74ff;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .tiles { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -125,151 +170,117 @@
 
   {% if request.user.is_staff or request.user.perfil.rol != 'chofer' %}
 
-    <div class="dashboard-kpis is-admin"> <div class="stat-card">
+    <div class="dashboard-kpis">
+      <div class="stat-card">
         <h3>{{ vehiculos_count|default:0 }}</h3>
-        <p>Vehículos</p>
+        <p>Vehículos Activos</p>
       </div>
-      <div class="stat-card {% if mantenimientos_pendientes > 0 %}stat-card-danger{% endif %}">
+      <div class="stat-card {% if mantenimientos_pendientes > 0 %}danger{% endif %}">
         <h3>{{ mantenimientos_pendientes|default:0 }}</h3>
-        <p>Mantenimientos atrasados</p>
+        <p>Mantenimientos Pendientes</p>
       </div>
       <div class="stat-card">
         <h3>{{ rutas_hoy_count|default:0 }}</h3> 
-        <p>Rutas hoy</p>
+        <p>Rutas para Hoy</p>
       </div>
     </div>
     
-    <section class="tiles is-admin"> <article class="tile">
-        <h4>Mantenimientos</h4>
-        {% if vehiculos_con_mantenimiento %}
-          <div class="alerta-mantenimiento">
-            <h5>¡Mantenimiento Requerido!</h5>
-            <ul>
-              {% for v in vehiculos_con_mantenimiento %}
-                <li>
-                  <strong>{{ v.placa }}</strong> ({{ v.marca }} {{ v.modelo }})
-                  <br>
-                  <small>KM Actual: {{ v.kilometraje }} / Límite: {{ v.km_proximo_mantenimiento }}</small>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
-        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Mantenimientos Recientes</h5>
-        <ul>
-          {% for m in ultimos_mantenimientos %}
-            <li><strong>{{ m.vehiculo }}</strong> — {{ m.tipo }} • {{ m.fecha|date:"d M Y" }}</li>
-          {% empty %}
-            <li>No hay mantenimientos recientes.</li>
-          {% endfor %}
-        </ul>
-      </article>
-
+    <section class="tiles">
+      
       <article class="tile">
-        <h4>Rutas de Hoy</h4>
-        <ul>
-          {% for r in rutas_hoy %}
-            <li class="ruta-item">
-              <div class="ruta-info">
-                <strong>{{ r.titulo }}</strong>
-                <small>{{ r.origen|default:"N/A" }} → {{ r.destino|default:"N/A" }} ({{ r.vehiculo.placa }})</small>
-              </div>
-              <div class="ruta-accion">
-                {% if r.status == r.STATUS_PROGRAMADA or r.status == 'programada' %}
-                  <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-ruta btn-ruta-start">▶ Iniciar</button>
-                  </form>
-                {% elif r.status == r.STATUS_EN_CURSO or r.status == 'en_curso' %}
-                  <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-ruta btn-ruta-complete">✔ Completar</button>
-                  </form>
-                {% endif %}
-              </div>
-            </li>
-          {% empty %}
-            <li>No hay rutas programadas para hoy.</li>
-          {% endfor %}
-        </ul>
-        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Rutas Futuras</h5>
-        <ul>
-          {% for r in rutas_futuras %}
-             <li class="ruta-item">
-               <div class="ruta-info">
-                 <strong>{{ r.titulo }}</strong>
-                 <small>{{ r.fecha|date:"d M Y" }} ({{ r.vehiculo.placa }})</small>
-               </div>
-             </li>
-          {% empty %}
-            <li>No hay rutas programadas a futuro.</li>
-          {% endfor %}
-        </ul>
+        <h4>📅 Rutas de Hoy</h4>
+        {% for r in rutas_hoy %}
+          <div class="ruta-item">
+            <div class="ruta-info">
+              <strong>{{ r.titulo }}</strong>
+              <span>{{ r.origen }} ➝ {{ r.destino }} ({{ r.vehiculo.placa }})</span>
+            </div>
+            <div>
+               {% if r.status == 'programada' %}
+                 <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST">{% csrf_token %}<button class="btn-ruta btn-ruta-start">▶ Iniciar</button></form>
+               {% elif r.status == 'en_curso' %}
+                 <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST">{% csrf_token %}<button class="btn-ruta btn-ruta-complete">✔ Terminar</button></form>
+               {% else %}
+                 <a href="{% url 'vehiculos:detalle_ruta' r.pk %}" class="btn-ruta btn-ruta-view">Ver</a>
+               {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p style="color:#9ca3af; text-align:center; padding:2rem;">No hay rutas activas hoy.</p>
+        {% endfor %}
+
+        <h5>Próximas Rutas</h5>
+        {% for r in rutas_futuras %}
+          <div class="ruta-item">
+            <div class="ruta-info">
+              <strong>{{ r.titulo }}</strong>
+              <span>{{ r.fecha|date:"l d M" }} • {{ r.vehiculo.placa }}</span>
+            </div>
+          </div>
+        {% empty %}
+          <p style="color:#9ca3af; font-size:0.9em;">No hay rutas futuras planificadas.</p>
+        {% endfor %}
       </article>
 
-      <article class="tile wide">
-        <h4>Accesos rápidos</h4>
-        <div class="quick-grid">
-          <a class="quick" href="{% url 'vehiculos:listar_vehiculos' %}">Lista de vehículos</a>
-          <a class="quick" href="{% url 'vehiculos:lista_cargas' %}">Lista de Cargas</a>
-          {% if user.is_staff %}
-            <a class="quick" href="{% url 'admin:index' %}">Panel admin</a>
-            <a class="quick" href="{% url 'vehiculos:exportar_excel' %}">Exportar Excel</a>
-          {% endif %}
-        </div>
-      </article>
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+        
+        {% if vehiculos_con_mantenimiento %}
+        <article class="tile" style="border-left: 4px solid #dc2626;">
+          <h4 style="color: #dc2626; border-bottom: none; margin-bottom: 0.5rem;">⚠️ Atención Requerida</h4>
+          {% for v in vehiculos_con_mantenimiento %}
+            <div class="alerta-mant">
+              <h5>{{ v.placa }} ({{ v.marca }})</h5>
+              <p>KM Actual: <strong>{{ v.kilometraje }}</strong></p>
+              <p>Límite: {{ v.km_proximo_mantenimiento }}</p>
+            </div>
+          {% endfor %}
+        </article>
+        {% endif %}
+
+        <article class="tile">
+          <h4>🚀 Accesos Rápidos</h4>
+          <a href="{% url 'vehiculos:lista_cargas' %}" class="quick-link">⛽ Registrar Combustible</a>
+          <a href="{% url 'vehiculos:lista_fletes' %}" class="quick-link">📦 Gestión de Fletes</a>
+          <a href="{% url 'vehiculos:registrar_mantenimiento' %}" class="quick-link">🔧 Registrar Mantenimiento</a>
+          <a href="{% url 'vehiculos:exportar_excel' %}" class="quick-link">📊 Exportar Excel</a>
+        </article>
+
+      </div>
     </section>
 
   {% else %}
-
-    <div class="dashboard-kpis"> <div class="stat-card">
+    
+    <div class="dashboard-kpis">
+      <div class="stat-card">
         <h3>{{ rutas_hoy_count|default:0 }}</h3> 
-        <p>Mis Rutas para Hoy</p>
+        <p>Mis Rutas Hoy</p>
       </div>
     </div>
     
-    <section class="tiles"> <article class="tile wide"> <h4>Mis Rutas de Hoy</h4>
-        <ul>
-          {% for r in rutas_hoy %}
-            <li class="ruta-item">
-              <div class="ruta-info">
-                <strong>{{ r.titulo }}</strong>
-                <small>{{ r.origen|default:"N/A" }} → {{ r.destino|default:"N/A" }} ({{ r.vehiculo.placa }})</small>
-              </div>
-              <div class="ruta-accion">
-                {% if r.status == r.STATUS_PROGRAMADA or r.status == 'programada' %}
-                  <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-ruta btn-ruta-start">▶ Iniciar</button>
-                  </form>
-                {% elif r.status == r.STATUS_EN_CURSO or r.status == 'en_curso' %}
-                  <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-ruta btn-ruta-complete">✔ Completar</button>
-                  </form>
-                {% endif %}
-              </div>
-            </li>
-          {% empty %}
-            <li>No tienes rutas programadas para hoy.</li>
-          {% endfor %}
-        </ul>
-        <h5 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Mis Rutas Futuras</h5>
-        <ul>
-          {% for r in rutas_futuras %}
-             <li class="ruta-item">
-               <div class="ruta-info">
-                 <strong>{{ r.titulo }}</strong>
-                 <small>{{ r.fecha|date:"d M Y" }} ({{ r.vehiculo.placa }})</small>
-               </div>
-             </li>
-          {% empty %}
-            <li>No tienes rutas programadas a futuro.</li>
-          {% endfor %}
-        </ul>
+    <section class="tiles">
+      <article class="tile" style="grid-column: 1 / -1;">
+        <h4>Mis Tareas de Hoy</h4>
+        {% for r in rutas_hoy %}
+          <div class="ruta-item">
+            <div class="ruta-info">
+              <strong>{{ r.titulo }}</strong>
+              <span>{{ r.origen }} ➝ {{ r.destino }}</span>
+            </div>
+            <div>
+               {% if r.status == 'programada' %}
+                 <form action="{% url 'vehiculos:iniciar_ruta' r.pk %}" method="POST">{% csrf_token %}<button class="btn-ruta btn-ruta-start">▶ Iniciar Viaje</button></form>
+               {% elif r.status == 'en_curso' %}
+                 <form action="{% url 'vehiculos:completar_ruta' r.pk %}" method="POST">{% csrf_token %}<button class="btn-ruta btn-ruta-complete">✔ Finalizar Viaje</button></form>
+               {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <p style="text-align:center; padding:3rem; color:#9ca3af;">No tienes rutas asignadas para hoy. ¡Buen descanso!</p>
+        {% endfor %}
       </article>
     </section>
   
   {% endif %}
-  </div>
+
+</div>
 {% endblock %}
